@@ -4,7 +4,7 @@
 #include "HSScan.h"
 #include "aux.h"
 
-#define DATA_SIZE 128
+#define DATA_SIZE 1<<11
 
 int main() {
 	std::vector<int> scanInputs(DATA_SIZE);
@@ -16,9 +16,9 @@ int main() {
 	hillsSteeleScanGpu(scanInputs, scanOutputsGpu);
 	inclusiveScanCpu(scanInputs, scanOutputsCpu);
 
-	printVector(scanInputs);
-	printVector(scanOutputsCpu);
-	printVector(scanOutputsGpu);
+	//printVector(scanInputs);
+	//printVector(scanOutputsCpu);
+	//printVector(scanOutputsGpu);
 
 	verifyGpuScan(scanOutputsCpu, scanOutputsGpu);
 

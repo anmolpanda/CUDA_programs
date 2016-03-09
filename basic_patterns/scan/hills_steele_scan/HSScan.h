@@ -3,9 +3,9 @@
 
 #include <vector>
 
-#define TILE_WIDTH 128
+#define TILE_WIDTH 1024
 
-// inclusive scan - Hills/Steele implementation. 
+// inclusive scan - Hillis/Steele implementation. 
 // O(log n) step complexity, O(n * log n) work complexity
 __global__ void hillsSteeleScanGpuKernel(int* d_in, int* d_out, int size);
 

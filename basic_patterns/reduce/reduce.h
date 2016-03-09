@@ -2,9 +2,12 @@
 
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
-__global__ void reduce_add_global_mem(float* d_in, float* d_out);
+#define TILE_WIDTH 1024
 
-__global__ void reduce_add_shared_mem(float* d_in, float* d_out);
+__global__ void reduceGpuKernel(int* d_in, int* d_out);
 
-void reduce_add(std::vector<float>& data_vec, float* h_out, bool use_shared_mem);
+void reduceGpu(std::vector<int>& data_vec, int* h_out);
+
+void reduceCpu(std::vector<int>& data_vec, int* h_out);
