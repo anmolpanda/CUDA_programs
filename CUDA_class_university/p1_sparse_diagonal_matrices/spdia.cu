@@ -1,35 +1,48 @@
 #include "spdia.h"
 
 
-__global__ void sparseDiagMatrixMultKernel( int *d_SDM, int *d_indices, int *d_inVec, 
+__global__ void sparseDiagMatrixMultKernel(int *d_SDM, int *d_indices, int *d_inVec, 
 							int *d_outVec, const int vecSize, const int indicesSize) {
-	// syntactic sugar - 2 dynamically shared mem allocation
+	// syntactic sugar - splitting shared memory block into 
+	// 					 2 shared memory arrays
 	extern __shared__ int shared[];
   	int *ds_inVec = shared;
-  	int *ds_outVec = &shared[vecSize];
+  	int *ds_outVec = &shared[blockDim.x];
 
 	int tx = threadIdx.x;
-	
-	if (tx < vecSize) {
-		ds_inVec[tx] = d_inVec[tx];
+	int tid = tx + blockIdx.x * blockDim.x;
+
+
+	if (tid < vecSize) {
 		ds_outVec[tx] = 0;
-		__syncthreads();
+		for(int tileIndex = 0; tileIndex != (vecSize - 1) / TILE_WIDTH + 1; ++tileIndex) {
+			ds_inVec[tx] = d_inVec[tx + tileIndex * TILE_WIDTH];
+			__syncthreads();
+			printf("Thread %d, tileIndex:: %d,  val: %d\n", 
+					tid, tileIndex, ds_inVec[tx]);
 
-		for (int i = 0; i != indicesSize; ++i){
-			printf("Thread %d, i: %d,  val: %d\n", tx, i, d_SDM[tx + i * vecSize]);
-			int diagInd = d_indices[i]; 
-			if(-tx <= diagInd && diagInd < vecSize - tx) {
-				ds_outVec[tx] += (d_SDM[i * vecSize + tx] * ds_inVec[diagInd + tx]);
+			for (int i = 0; i != indicesSize; ++i){ // oops -> complexity
+				//printf("Thread %d, i: %d,  val: %d\n", tx, i, d_SDM[tx + i * vecSize]);
+				int diagInd = d_indices[i]; 
+				if(-tid + TILE_WIDTH * tileIndex <= diagInd 
+					&& diagInd < TILE_WIDTH * (tileIndex + 1) - tid) {
+					printf("Thread: %d, tileIndex: %d, diagInd: %d, ds_inVec[diagInd + tid]: %d, d_SDM[i * vecSize + tid]: %d\n", 
+							tid, tileIndex, diagInd, ds_inVec[diagInd + tid - tileIndex * TILE_WIDTH], 
+							d_SDM[i * vecSize + tid]);
+					ds_outVec[tx] += (d_SDM[i * vecSize + tid] * ds_inVec[diagInd + tid - tileIndex * TILE_WIDTH]);
+				}
 			}
+			__syncthreads();
 		}
-		__syncthreads();
 
-		d_outVec[tx] = ds_outVec[tx];
+
+
+		d_outVec[tid] = ds_outVec[tx];
 	}
 }
 
 void sparseDiagMatrixMult(std::vector<int> &h_SDM, std::vector<int> &h_indices, 
-	std::vector<int> &h_inVec,	std::vector<int> &h_outVec) 
+	std::vector<int> &h_inVec, std::vector<int> &h_outVec) 
 {
 	const int vecSize = h_inVec.size();
 	int *d_SDM;
@@ -50,9 +63,11 @@ void sparseDiagMatrixMult(std::vector<int> &h_SDM, std::vector<int> &h_indices,
 	cudaMemcpy(d_inVec, h_inVec.data(), VEC_BYTE_SIZE, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_indices, h_indices.data(), VEC_INDICES_BYTE_SIZE, cudaMemcpyHostToDevice);
 
-	dim3 grid(1);
+	dim3 grid((vecSize - 1) / TILE_WIDTH + 1);
 	dim3 block(TILE_WIDTH);
-	const int SH_MEM_BYTE_SIZE = 2 * vecSize * sizeof(int);
+	std::cout << "Threads per block: " << TILE_WIDTH << " blocks per grid: " 
+			  <<  (vecSize - 1) / TILE_WIDTH + 1 << "\n";
+	const int SH_MEM_BYTE_SIZE = 2 * TILE_WIDTH * sizeof(int);
 	sparseDiagMatrixMultKernel<<<grid, block, SH_MEM_BYTE_SIZE>>>(d_SDM,
 				d_indices, d_inVec, d_outVec, vecSize, h_indices.size());
 
