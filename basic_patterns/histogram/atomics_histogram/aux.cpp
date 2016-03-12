@@ -1,6 +1,6 @@
 #include "aux.h"
 
-void verifyGpuHistogram(std::vector<int> &host_ref, std::vector<int> &gpu_ref) {
+void verifyGpuScan(std::vector<int> &host_ref, std::vector<int> &gpu_ref) {
 	bool isCorrect = true;
 	float epsilon = std::numeric_limits<int>::epsilon();
 	epsilon *= 10000;
@@ -14,10 +14,10 @@ void verifyGpuHistogram(std::vector<int> &host_ref, std::vector<int> &gpu_ref) {
 	}
 
 	if (isCorrect) {
-		std::cout << "OK. GPU result matches CPU result\n";
+		std::cout << "OK. CPU result matches GPU result\n";
 	}
 	else {
-		std::cout << "FAIL. GPU result doesn't match CPU result\n";
+		std::cout << "FAIL. CPU result doesn't match GPU result\n";
 	}
 }	
 
@@ -30,7 +30,7 @@ void printVector(std::vector<int> &vec) {
 
 void generateRandomData(std::vector<int> &vec) {
 	std::default_random_engine dre;
-	std::uniform_int_distribution<int> di(0, 9);
+	std::uniform_int_distribution<int> di(0, 1);
 	for (auto &element: vec) {
 		element = di(dre);
 	}
