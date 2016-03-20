@@ -1,6 +1,8 @@
 Qt_HelloWorld/bin
 Qt_HelloWorld/build*
-CUDA_class_university/p1_sparse_diagonal_matrices/data*
+CUDA_class_university/p1_sparse_diagonal_matrices/data
 CUDA_class_university/p1_sparse_diagonal_matrices/data/in/test{6,7,8}.in
 CUDA_class_university/p1_sparse_diagonal_matrices/data/out/test{6,7,8}.out
+!CUDA_class_university/p1_sparse_diagonal_matrices/data/in/test1.in
+!CUDA_class_university/p1_sparse_diagonal_matrices/data/out/test1.out
 !*.*
