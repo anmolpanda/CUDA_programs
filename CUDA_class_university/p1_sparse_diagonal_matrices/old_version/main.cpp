@@ -6,7 +6,7 @@
 #include "aux.h"
 
 int main() {
-int numOfRows;
+	int numOfRows;
 	int numOfDiagonals;
 	std::cin >> numOfRows >> numOfDiagonals;
 	std::cout << "numOfRows: " << numOfRows << 
@@ -39,20 +39,14 @@ int numOfRows;
 		inputVector[i] = entry;
 	}
 
-	for (int i = 0; i != numOfRows; ++i) {
-		int entry;
-		std::cin >> entry;
-		outputVectorCpu[i] = entry;
-	}
-
 	spMVdiaGPU(diagonals, offsets, inputVector, outputVectorGpu);
-	//spMVdiaCPU(diagonals, offsets, inputVector, outputVectorCpu);
+	spMVdiaCPU(diagonals, offsets, inputVector, outputVectorCpu);
 
 	// std::cout << "Print diagonals: \n";
 	// printMatrix(diagonals, numOfRows, numOfDiagonals);
 
-	// std::cout << "Print offsets: ";
-	// printVector(offsets);
+	std::cout << "Print offsets: ";
+	printVector(offsets);
 
 	// std::cout << "Print input vector: ";
 	// printVector(inputVector);
